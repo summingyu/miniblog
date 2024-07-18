@@ -1,12 +1,17 @@
-// Copyright 2023 Innkeeper summingyu(余苏明) <summingbest@gmail.com>. All rights reserved.
-// Use of this source code is governed by a MIT style
-// license that can be found in the LICENSE file. The original repo for
-// this file is https://github.com/summingyu/miniblog.
-
 package main
 
-import "fmt"
+import (
+	"os"
 
+	_ "go.uber.org/automaxprocs"
+
+	"github.com/summingyu/miniblog/internal/miniblog"
+)
+
+// Go 程序的默认入口函数(主函数).
 func main() {
-	fmt.Println("Hello MiniBlog!!")
+	command := miniblog.NewMiniBlogCommand()
+	if err := command.Execute(); err != nil {
+		os.Exit(1)
+	}
 }

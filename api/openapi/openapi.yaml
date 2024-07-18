@@ -1,20 +1,20 @@
-# Copyright 2022 Innkeeper Belm(孔令飞) <nosbelm@qq.com>. All rights reserved.
+# Copyright 2022 Summing Yu(余苏明) <nosbelm@qq.com>. All rights reserved.
 # Use of this source code is governed by a MIT style
 # license that can be found in the LICENSE file. The original repo for
 # this file is https://github.com/marmotedu/miniblog.
 
 swagger: "2.0"
 servers:
-  - url: http://127.0.0.1:8080/v1
-    description: development server
+- url: http://127.0.0.1:8080/v1
+  description: development server
 info:
   version: "1.0.0"
   title: miniblog api definition
   description: The API for the miniblog project
   contact:
-    name: Innkeeper Belm(孔令飞)
-    email: nosbelm@qq.com
-    url: https://github.com/colin404
+    name: Summing Yu(余苏明)
+    email: summingbest@gmail.com
+    url: https://github.com/summingyu
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -22,7 +22,7 @@ paths:
   /login:
     post:
       tags:
-        - users
+      - users
       description: user login
       operationId: login
       requestBody:
@@ -54,7 +54,7 @@ paths:
   /users:
     post:
       tags:
-        - users
+      - users
       description: create user
       operationId: createUser
       requestBody:
@@ -81,20 +81,20 @@ paths:
                 $ref: '#/components/schemas/ErrResponse'
     get:
       tags:
-        - users
+      - users
       description: list users
       operationId: listUsers
       parameters:
-        - name: offset
-          in: query
-          schema:
-            type: integer
-            format: int64
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            format: int64
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          format: int64
       responses:
         '200':
           description: successfully list users
@@ -117,15 +117,15 @@ paths:
   /users/{name}:
     get:
       tags:
-        - users
+      - users
       description: get user
       operationId: getUser
       parameters:
-        - name: name
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: successfully get user
@@ -147,15 +147,15 @@ paths:
                 $ref: '#/components/schemas/ErrResponse'
     delete:
       tags:
-        - users
+      - users
       description: delete user
       operationId: deleteUser
       parameters:
-        - name: name
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: successfully delete user
@@ -173,7 +173,7 @@ paths:
                 $ref: '#/components/schemas/ErrResponse'
     put:
       tags:
-        - users
+      - users
       description: update user
       operationId: updateUser
       requestBody:
@@ -201,7 +201,7 @@ paths:
   /users/{name}/change-password:
     put:
       tags:
-        - users
+      - users
       description: update user password
       operationId: changePassword
       requestBody:
@@ -229,7 +229,7 @@ paths:
   /posts:
     post:
       tags:
-        - posts
+      - posts
       description: create blog post
       operationId: createPost
       requestBody:
@@ -256,20 +256,20 @@ paths:
                 $ref: '#/components/schemas/ErrResponse'
     get:
       tags:
-        - posts
+      - posts
       description: list posts
       operationId: listPosts
       parameters:
-        - name: offset
-          in: query
-          schema:
-            type: integer
-            format: int64
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            format: int64
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          format: int64
       responses:
         '200':
           description: successfully list posts
@@ -291,17 +291,17 @@ paths:
                 $ref: '#/components/schemas/ErrResponse'
     delete:
       tags:
-        - posts
+      - posts
       description: delete posts
       operationId: deletePosts
       parameters:
-        - name: postID
-          in: query
-          schema:
-            type: array
-            items:
-              type: string
-              example: post-22z9jl
+      - name: postID
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            example: post-22z9jl
       responses:
         '200':
           description: successfully delete posts
@@ -320,15 +320,15 @@ paths:
   /posts/{postID}:
     get:
       tags:
-        - posts
+      - posts
       description: get post
       operationId: getPost
       parameters:
-        - name: postID
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: postID
+        in: path
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: successfully get post
@@ -350,15 +350,15 @@ paths:
                 $ref: '#/components/schemas/ErrResponse'
     delete:
       tags:
-        - posts
+      - posts
       description: delete post
       operationId: deletePost
       parameters:
-        - name: postID
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: postID
+        in: path
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: successfully delete post
@@ -376,7 +376,7 @@ paths:
                 $ref: '#/components/schemas/ErrResponse'
     put:
       tags:
-        - posts
+      - posts
       description: update post
       operationId: updatePost
       requestBody:
@@ -405,8 +405,8 @@ components:
   schemas:
     LoginRequest:
       required:
-        - username
-        - password
+      - username
+      - password
       type: object
       properties:
         username:
@@ -424,11 +424,11 @@ components:
           example: xxx.yyy.zzz
     CreateUserRequest:
       required:
-        - username
-        - password
-        - nickname
-        - email
-        - phone
+      - username
+      - password
+      - nickname
+      - email
+      - phone
       type: object
       properties:
         username:
@@ -478,8 +478,8 @@ components:
           example: 2022-11-14 18:00:35
     ChangePasswordRequest:
       required:
-        - oldPassword
-        - newPassword
+      - oldPassword
+      - newPassword
       type: object
       properties:
         oldPassword:
@@ -544,8 +544,8 @@ components:
           example: 2022-11-14 18:00:35
     CreatePostRequest:
       required:
-        - title
-        - content
+      - title
+      - content
       type: object
       properties:
         title:

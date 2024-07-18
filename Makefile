@@ -21,7 +21,7 @@ build: tidy # 编译源码，依赖 tidy 目标自动添加/移除依赖包.
 
 .PHONY: format
 format: # 格式化 Go 源码.
-	@gofmt -s -w ./
+	@gofumpt -l -w ./
 
 .PHONY: add-copyright
 add-copyright: # 添加版权头信息.
@@ -32,9 +32,21 @@ swagger: # 启动 swagger 在线文档.
 	@swagger serve -F=swagger --no-open --port 65534 $(ROOT_DIR)/api/openapi/openapi.yaml
 
 .PHONY: tidy
-tidy: # 自动添加/移除依赖包.
+tidy: format # 自动添加/移除依赖包.
 	@go mod tidy
 
 .PHONY: clean
 clean: # 清理构建产物、临时文件等.
 	@-rm -vrf $(OUTPUT_DIR)
+
+.PHONY: install.tools
+install.tools: # 初始化项目时依赖的工具
+	@go install github.com/air-verse/air@latest
+	@go install github.com/go-swagger/go-swagger/cmd/swagger@latest
+	@go install github.com/nishanths/license/v5@latest
+	@go install github.com/marmotedu/addlicense@latest
+
+.PHONY: init.env
+init.env: # 初始化环境变量
+	@go env -w GO111MODULE=on
+	@go env -w GOPROXY=https://mirrors.aliyun.com/goproxy/,direct
