@@ -11,6 +11,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var cfgFile string
+
 func NewMiniBlogCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		// 指定命令的名字，该名字会出现在帮助信息中
@@ -39,6 +41,13 @@ https://github.com/marmotedu/miniblog#readme`,
 			return nil
 		},
 	}
+	// 以下设置，使得 initConfig 函数在每个命令运行时都会被调用以读取配置
+	cobra.OnInitialize(initConfig)
+	// 在这里您将定义标志和配置设置。
+
+	// Cobra 支持持久性标志(PersistentFlag)，该标志可用于它所分配的命令以及该命令下的每个子命令
+	cmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.miniblog.yaml)")
+	cmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	return cmd
 }
 
