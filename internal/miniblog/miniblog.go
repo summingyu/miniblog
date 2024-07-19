@@ -1,9 +1,11 @@
 package miniblog
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -29,12 +31,12 @@ https://github.com/marmotedu/miniblog#readme`,
 		SilenceUsage: true,
 		// 指定调用 cmd.Execute() 时，执行的 Run 函数，函数执行失败会返回错误信息
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// 如果 `--version=true`，则打印版本并退出
-			verflag.PrintAndExitIfRequested()
 			// 初始化日志
 			log.Init(logOptions())
 			// Sync 将缓冲区中的日志数据写入到文件中
 			defer log.Sync()
+			// 如果 `--version=true`，则打印版本并退出
+			verflag.PrintAndExitIfRequested()
 			return run()
 		},
 		// 这里设置命令运行时，不需要指定命令行参数
@@ -61,8 +63,28 @@ https://github.com/marmotedu/miniblog#readme`,
 
 // run 函数是实际的业务代码入口函数.
 func run() error {
-	settings, _ := json.Marshal(viper.AllSettings())
-	log.Infow(string(settings))
-	log.Debugw(viper.GetString("db.username"))
+	// 设置 Gin 运行模式
+	gin.SetMode(viper.GetString("runmode"))
+
+	// 创建 Gin 引擎
+	g := gin.New()
+
+	// 注册404 Handler
+	g.NoRoute(func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"code": 10003, "message": "Page not found"})
+	})
+
+	// 注册 /healthz handler.
+	g.GET("/healthz", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
+
+	// 创建HTTP Server 实例
+	httpsrv := &http.Server{Addr: viper.GetString("addr"), Handler: g}
+	// 启动HTTP Server
+	log.Infow("Start to listening the incoming requests on http address", "addr", viper.GetString("addr"))
+	if err := httpsrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		log.Fatalw("Failed to start http server", "error", err.Error())
+	}
 	return nil
 }

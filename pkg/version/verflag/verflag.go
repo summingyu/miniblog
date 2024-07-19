@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/pflag"
 
+	"github.com/summingyu/miniblog/internal/pkg/log"
 	"github.com/summingyu/miniblog/pkg/version"
 )
 
@@ -88,4 +89,5 @@ func PrintAndExitIfRequested() {
 		fmt.Printf("%s\n", version.Get())
 		os.Exit(0)
 	}
+	log.Debugw(fmt.Sprintf("%#v\n", version.Get()))
 }
