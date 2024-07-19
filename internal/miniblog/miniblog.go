@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/summingyu/miniblog/internal/pkg/log"
+	"github.com/summingyu/miniblog/pkg/version/verflag"
 )
 
 var cfgFile string
@@ -28,6 +29,8 @@ https://github.com/marmotedu/miniblog#readme`,
 		SilenceUsage: true,
 		// 指定调用 cmd.Execute() 时，执行的 Run 函数，函数执行失败会返回错误信息
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// 如果 `--version=true`，则打印版本并退出
+			verflag.PrintAndExitIfRequested()
 			// 初始化日志
 			log.Init(logOptions())
 			// Sync 将缓冲区中的日志数据写入到文件中
@@ -51,6 +54,8 @@ https://github.com/marmotedu/miniblog#readme`,
 	// Cobra 支持持久性标志(PersistentFlag)，该标志可用于它所分配的命令以及该命令下的每个子命令
 	cmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.miniblog.yaml)")
 	cmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// 添加 --version 标志
+	verflag.AddFlags(cmd.PersistentFlags())
 	return cmd
 }
 
