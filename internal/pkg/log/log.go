@@ -28,7 +28,6 @@ var _ Logger = &zapLogger{}
 
 var (
 	mu sync.Mutex
-
 	// std 定义了默认的全局Logger.
 	std = NewLogger(NewOptions())
 )
@@ -58,20 +57,23 @@ func NewLogger(opts *Options) *zapLogger {
 	// 自定义 TimeKey 为 timestamp, timestamp 语意更明确.
 	encoderConfig.TimeKey = "timestamp"
 	// 指定时间序列化函数，将时间序列化为 `2006-01-02 15:04:05.000` 格式，更易读
-	encoderConfig.EncodeTime = func(t time.Time, pae zapcore.PrimitiveArrayEncoder) {
-		pae.AppendString(t.Format("2006-01-02 15:04:05.000"))
+	encoderConfig.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+		enc.AppendString(t.Format("2006-01-02 15:04:05.000"))
 	}
 	// 指定 time.Duration 序列化函数，将 time.Duration 序列化为经过的毫秒数的浮点数
-	encoderConfig.EncodeDuration = func(d time.Duration, pae zapcore.PrimitiveArrayEncoder) {
-		pae.AppendFloat64(float64(d) / float64(time.Millisecond))
+	encoderConfig.EncodeDuration = func(d time.Duration, enc zapcore.PrimitiveArrayEncoder) {
+		enc.AppendFloat64(float64(d) / float64(time.Millisecond))
 	}
 
 	// 创建构建zap.Logger的配置
 	cfg := &zap.Config{
-		DisableCaller: opts.DisableCaller,
-		Level:         zap.NewAtomicLevelAt(zapLevel),
-		OutputPaths:   opts.OutputPaths,
-		EncoderConfig: encoderConfig,
+		DisableCaller:     opts.DisableCaller,
+		DisableStacktrace: opts.DisableStacktrace,
+		Level:             zap.NewAtomicLevelAt(zapLevel),
+		Encoding:          opts.Format,
+		EncoderConfig:     encoderConfig,
+		OutputPaths:       opts.OutputPaths,
+		ErrorOutputPaths:  []string{"stderr"},
 	}
 	z, err := cfg.Build(zap.AddStacktrace(zapcore.PanicLevel), zap.AddCallerSkip(1))
 	if err != nil {
@@ -85,6 +87,13 @@ func NewLogger(opts *Options) *zapLogger {
 	return logger
 }
 
+// Sync implements Logger.
+func Sync() { std.Sync() }
+
+func (l *zapLogger) Sync() {
+	_ = l.z.Sync()
+}
+
 // Debugw implements Logger.
 func Debugw(msg string, keysAndValues ...interface{}) {
 	std.z.Sugar().Debugw(msg, keysAndValues...)
@@ -92,24 +101,6 @@ func Debugw(msg string, keysAndValues ...interface{}) {
 
 func (l *zapLogger) Debugw(msg string, keysAndValues ...interface{}) {
 	l.z.Sugar().Debugw(msg, keysAndValues...)
-}
-
-// Errorw implements Logger.
-func Errorw(msg string, keysAndValues ...interface{}) {
-	std.z.Sugar().Errorw(msg, keysAndValues...)
-}
-
-func (l *zapLogger) Errorw(msg string, keysAndValues ...interface{}) {
-	l.z.Sugar().Errorw(msg, keysAndValues...)
-}
-
-// Fatalw implements Logger.
-func Fatalw(msg string, keysAndValues ...interface{}) {
-	std.z.Sugar().Fatalw(msg, keysAndValues...)
-}
-
-func (l *zapLogger) Fatalw(msg string, keysAndValues ...interface{}) {
-	l.z.Sugar().Fatalw(msg, keysAndValues...)
 }
 
 // Infow implements Logger.
@@ -121,6 +112,24 @@ func (l *zapLogger) Infow(msg string, keysAndValues ...interface{}) {
 	l.z.Sugar().Infow(msg, keysAndValues...)
 }
 
+// Warnw implements Logger.
+func Warnw(msg string, keysAndValues ...interface{}) {
+	std.z.Sugar().Warnw(msg, keysAndValues...)
+}
+
+func (l *zapLogger) Warnw(msg string, keysAndValues ...interface{}) {
+	l.z.Sugar().Warnw(msg, keysAndValues...)
+}
+
+// Errorw implements Logger.
+func Errorw(msg string, keysAndValues ...interface{}) {
+	std.z.Sugar().Errorw(msg, keysAndValues...)
+}
+
+func (l *zapLogger) Errorw(msg string, keysAndValues ...interface{}) {
+	l.z.Sugar().Errorw(msg, keysAndValues...)
+}
+
 // Panicw implements Logger.
 func Panicw(msg string, keysAndValues ...interface{}) {
 	std.z.Sugar().Panicw(msg, keysAndValues...)
@@ -129,18 +138,12 @@ func Panicw(msg string, keysAndValues ...interface{}) {
 func (l *zapLogger) Panicw(msg string, keysAndValues ...interface{}) {
 	l.z.Sugar().Panicw(msg, keysAndValues...)
 }
-func Sync() { std.Sync() }
 
-// Sync implements Logger.
-func (l *zapLogger) Sync() {
-	_ = l.z.Sync()
+// Fatalw implements Logger.
+func Fatalw(msg string, keysAndValues ...interface{}) {
+	std.z.Sugar().Fatalw(msg, keysAndValues...)
 }
 
-// Warnw implements Logger.
-func Warnw(msg string, keysAndValues ...interface{}) {
-	std.z.Sugar().Warnw(msg, keysAndValues...)
-}
-
-func (l *zapLogger) Warnw(msg string, keysAndValues ...interface{}) {
-	l.z.Sugar().Warnw(msg, keysAndValues...)
+func (l *zapLogger) Fatalw(msg string, keysAndValues ...interface{}) {
+	l.z.Sugar().Fatalw(msg, keysAndValues...)
 }

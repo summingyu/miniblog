@@ -6,6 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/summingyu/miniblog/internal/pkg/log"
 )
 
 var cfgFile string
@@ -26,6 +28,10 @@ https://github.com/marmotedu/miniblog#readme`,
 		SilenceUsage: true,
 		// 指定调用 cmd.Execute() 时，执行的 Run 函数，函数执行失败会返回错误信息
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// 初始化日志
+			log.Init(logOptions())
+			// Sync 将缓冲区中的日志数据写入到文件中
+			defer log.Sync()
 			return run()
 		},
 		// 这里设置命令运行时，不需要指定命令行参数
@@ -51,7 +57,7 @@ https://github.com/marmotedu/miniblog#readme`,
 // run 函数是实际的业务代码入口函数.
 func run() error {
 	settings, _ := json.Marshal(viper.AllSettings())
-	fmt.Println(string(settings))
-	fmt.Println(viper.GetString("db.username"))
+	log.Infow(string(settings))
+	log.Debugw(viper.GetString("db.username"))
 	return nil
 }

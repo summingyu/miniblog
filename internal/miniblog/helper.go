@@ -1,13 +1,14 @@
 package miniblog
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/summingyu/miniblog/internal/pkg/log"
 )
 
 const (
@@ -45,13 +46,23 @@ func initConfig() {
 	// 读取环境变量的前缀为MINIBLOG, 如果是miniblog, 将自动转变为大写
 	viper.SetEnvPrefix("MINIBLOG")
 	// 将viper.Get(key) key 字符串中 '.', '-' 字符替换为 `_` 字符，以符合环境变量命名规范
-	replacer := strings.NewReplacer(".", "_", "-", "_")
+	replacer := strings.NewReplacer(".", "_")
 	viper.SetEnvKeyReplacer(replacer)
 
 	// 读取配置文件。如果指定了配置文件名，则使用指定的配置文件，否则在注册的搜索路径中搜索
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		log.Errorw("Failed to read viper configuration file", "err", err)
 	}
 
-	fmt.Fprintln(os.Stdout, "Using config file:", viper.ConfigFileUsed())
+	log.Infow("Using config file", "file", viper.ConfigFileUsed())
+}
+
+func logOptions() *log.Options {
+	return &log.Options{
+		DisableCaller:     viper.GetBool("log.disable-caller"),
+		DisableStacktrace: viper.GetBool("log.disable-stacktrace"),
+		Level:             viper.GetString("log.level"),
+		Format:            viper.GetString("log.format"),
+		OutputPaths:       viper.GetStringSlice("log.output-paths"),
+	}
 }
