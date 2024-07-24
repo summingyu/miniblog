@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/summingyu/miniblog/internal/pkg/log"
+	mw "github.com/summingyu/miniblog/internal/pkg/middleware"
 	"github.com/summingyu/miniblog/pkg/version/verflag"
 )
 
@@ -69,13 +70,19 @@ func run() error {
 	// 创建 Gin 引擎
 	g := gin.New()
 
+	mws := []gin.HandlerFunc{gin.Recovery(), mw.NoCache, mw.Cors, mw.Secure, mw.RequestID()}
+
+	g.Use(mws...)
+
 	// 注册404 Handler
 	g.NoRoute(func(c *gin.Context) {
+		log.C(c).Debugw("404 page not found", "path", c.Request.URL)
 		c.JSON(http.StatusOK, gin.H{"code": 10003, "message": "Page not found"})
 	})
 
 	// 注册 /healthz handler.
 	g.GET("/healthz", func(c *gin.Context) {
+		log.C(c).Infow("Healthz function called")
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 

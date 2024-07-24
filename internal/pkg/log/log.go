@@ -1,11 +1,14 @@
 package log
 
 import (
+	"context"
 	"sync"
 	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/summingyu/miniblog/internal/pkg/known"
 )
 
 // Logger 定义了 miniblog 项目的日志接口. 该接口只包含了支持的日志记录方法.
@@ -146,4 +149,41 @@ func Fatalw(msg string, keysAndValues ...interface{}) {
 
 func (l *zapLogger) Fatalw(msg string, keysAndValues ...interface{}) {
 	l.z.Sugar().Fatalw(msg, keysAndValues...)
+}
+
+// C 解析传入的context, 尝试提取关注的键值, 并添加到zap.Logger的结构化日志中.
+func C(ctx context.Context) *zapLogger {
+	return std.C(ctx)
+}
+
+// C 返回一个带有当前请求ID的zapLogger副本
+//
+// 如果给定的ctx中包含了已知的请求ID键（known.XRequestIDKey），
+// 则会在新的zapLogger中添加该请求ID作为日志字段
+//
+// 参数：
+// ctx：包含请求ID的上下文
+//
+// 返回值：
+// *zapLogger：带有当前请求ID的zapLogger副本
+func (l *zapLogger) C(ctx context.Context) *zapLogger {
+	// 复制当前 zapLogger 实例
+	lc := l.clone()
+
+	// 从 ctx 中获取 requestID
+	if requestID := ctx.Value(known.XRequestIDKey); requestID != nil {
+		// 如果 requestID 存在，则在日志中添加 request_id 字段
+		lc.z = lc.z.With(zap.String("request_id", requestID.(string)))
+	}
+	// 返回克隆后的 zapLogger 实例
+	return lc
+}
+
+// clone 是zapLogger类型的方法，用于克隆当前的zapLogger实例
+// 返回一个指向新克隆的zapLogger实例的指针
+func (l *zapLogger) clone() *zapLogger {
+	// 创建一个新的zapLogger结构体lc，并将l的内容复制到lc中
+	lc := *l
+	// 返回lc的地址
+	return &lc
 }
