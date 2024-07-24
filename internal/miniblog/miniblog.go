@@ -14,8 +14,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/summingyu/miniblog/internal/pkg/core"
-	"github.com/summingyu/miniblog/internal/pkg/errno"
 	"github.com/summingyu/miniblog/internal/pkg/log"
 	mw "github.com/summingyu/miniblog/internal/pkg/middleware"
 	"github.com/summingyu/miniblog/pkg/version/verflag"
@@ -84,20 +82,9 @@ func run() error {
 	mws := []gin.HandlerFunc{gin.Recovery(), mw.NoCache, mw.Cors, mw.Secure, mw.RequestID()}
 
 	g.Use(mws...)
-
-	// 注册404 Handler
-	g.NoRoute(func(c *gin.Context) {
-		log.C(c).Debugw("404 page not found", "path", c.Request.URL)
-		core.WriteResponse(c, errno.ErrPageNotFound, nil)
-	})
-
-	// 注册 /healthz handler.
-	g.GET("/healthz", func(c *gin.Context) {
-		log.C(c).Infow("Healthz function called")
-
-		core.WriteResponse(c, nil, map[string]string{"status": "ok"})
-	})
-
+	if err := installRouters(g); err != nil {
+		return err
+	}
 	// 创建HTTP Server 实例
 	httpsrv := &http.Server{Addr: viper.GetString("addr"), Handler: g}
 	// 启动HTTP Server
