@@ -1,9 +1,14 @@
 package miniblog
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
@@ -90,8 +95,31 @@ func run() error {
 	httpsrv := &http.Server{Addr: viper.GetString("addr"), Handler: g}
 	// 启动HTTP Server
 	log.Infow("Start to listening the incoming requests on http address", "addr", viper.GetString("addr"))
-	if err := httpsrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		log.Fatalw("Failed to start http server", "error", err.Error())
+	go func() {
+		if err := httpsrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalw("Failed to start http server", "error", err.Error())
+		}
+	}()
+
+	// 等待信号退出
+	quit := make(chan os.Signal, 1)
+	// kill 默认会发送 syscall.SIGTERM 信号
+	// kill -2 发送 syscall.SIGINT 信号，我们常用的 CTRL + C 就是触发系统 SIGINT 信号
+	// kill -9 发送 syscall.SIGKILL 信号，但是不能被捕获，所以不需要添加它
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Infow("Shutting down server...")
+
+	// 创建 ctx 用于通知服务器goroutine, 它有10s 完成当前处理的请求
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// 10s 内关闭服务器
+	if err := httpsrv.Shutdown(ctx); err != nil {
+		log.Fatalw("Server forced to shutdown", "error", err)
+		return err
 	}
+
+	log.Infow("Server exiting")
 	return nil
 }
