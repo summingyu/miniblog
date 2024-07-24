@@ -5,6 +5,7 @@ go 1.22.0
 require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/gosuri/uitable v0.0.4
+	github.com/jinzhu/copier v0.4.0
 	github.com/spf13/cobra v1.8.1
 	go.uber.org/automaxprocs v1.5.3
 	go.uber.org/zap v1.21.0
