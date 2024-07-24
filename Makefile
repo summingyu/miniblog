@@ -44,6 +44,7 @@ build: tidy # 编译源码，依赖 tidy 目标自动添加/移除依赖包.
 
 .PHONY: format
 format: # 格式化 Go 源码.
+	@goimports -w ./
 	@gofumpt -l -w ./
 
 .PHONY: add-copyright
@@ -68,6 +69,8 @@ install.tools: # 初始化项目时依赖的工具
 	@go install github.com/go-swagger/go-swagger/cmd/swagger@latest
 	@go install github.com/nishanths/license/v5@latest
 	@go install github.com/marmotedu/addlicense@latest
+	@go get github.com/Shelnutt2/db2struct/cmd/db2struct
+	@go install golang.org/x/tools/cmd/goimports
 
 .PHONY: init.env
 init.env: # 初始化环境变量
