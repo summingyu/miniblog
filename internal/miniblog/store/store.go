@@ -24,11 +24,17 @@ var (
 
 // Istore 定义了 Store 层需要实现的接口
 type IStore interface {
+	DB() *gorm.DB
 	Users() UserStore
 }
 
 // 确保 datastore 实现了 IStore 接口
 var _ IStore = (*datastore)(nil)
+
+// DB 返回当前 Store 层使用的数据库连接池
+func (ds *datastore) DB() *gorm.DB {
+	return ds.db
+}
 
 func (ds *datastore) Users() UserStore {
 	return newUsers(ds.db)

@@ -21,4 +21,7 @@ var (
 
 	// ErrTokenInvalid 表示 JWT Token 格式错误.
 	ErrTokenInvalid = &Errno{HTTP: 401, Code: "AuthFailure.TokenInvalid", Message: "Token was invalid."}
+
+	// ErrUnauthorized 表示没有权限访问.
+	ErrUnauthorized = &Errno{HTTP: 401, Code: "AuthFailure.Unauthorized", Message: "You are not authorized to access this resource."}
 )

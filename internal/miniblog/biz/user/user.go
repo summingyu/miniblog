@@ -7,9 +7,11 @@ package user
 
 import (
 	"context"
+	"errors"
 	"regexp"
 
 	"github.com/jinzhu/copier"
+	"gorm.io/gorm"
 
 	"github.com/summingyu/miniblog/internal/miniblog/store"
 	"github.com/summingyu/miniblog/internal/pkg/errno"
@@ -23,6 +25,7 @@ type UserBiz interface {
 	Create(ctx context.Context, r *v1.CreateUserRequest) error
 	Login(ctx context.Context, r *v1.LoginRequest) (*v1.LoginResponse, error)
 	ChangePassword(ctx context.Context, username string, r *v1.ChangePasswordRequest) error
+	Get(ctx context.Context, username string) (*v1.GetUserResponse, error)
 }
 
 type userBiz struct {
@@ -79,4 +82,23 @@ func (b *userBiz) Login(ctx context.Context, r *v1.LoginRequest) (*v1.LoginRespo
 		return nil, errno.ErrSignToken
 	}
 	return &v1.LoginResponse{Token: t}, nil
+}
+
+func (b *userBiz) Get(ctx context.Context, username string) (*v1.GetUserResponse, error) {
+	user, err := b.ds.Users().Get(ctx, username)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errno.ErrUserNotFound
+		}
+
+		return nil, err
+	}
+
+	var resp v1.GetUserResponse
+	_ = copier.Copy(&resp, user)
+
+	resp.CreatedAt = user.CreatedAt.Format("2006-01-02 15:04:05")
+	resp.UpdatedAt = user.UpdatedAt.Format("2006-01-02 15:04:05")
+
+	return &resp, nil
 }

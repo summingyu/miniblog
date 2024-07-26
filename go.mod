@@ -4,6 +4,8 @@ go 1.22.0
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
+	github.com/casbin/casbin/v2 v2.58.0
+	github.com/casbin/gorm-adapter/v3 v3.13.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/gosuri/uitable v0.0.4
@@ -20,8 +22,6 @@ require (
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
-	github.com/casbin/casbin/v2 v2.58.0 // indirect
-	github.com/casbin/gorm-adapter/v3 v3.13.0 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/fatih/color v1.14.1 // indirect

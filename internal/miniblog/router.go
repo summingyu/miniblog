@@ -14,6 +14,7 @@ import (
 	"github.com/summingyu/miniblog/internal/pkg/errno"
 	"github.com/summingyu/miniblog/internal/pkg/log"
 	mw "github.com/summingyu/miniblog/internal/pkg/middleware"
+	"github.com/summingyu/miniblog/pkg/auth"
 )
 
 // installRouters 安装miniblog接口路由
@@ -29,8 +30,11 @@ func installRouters(g *gin.Engine) error {
 		log.C(c).Infow("Healthz function called")
 		core.WriteResponse(c, nil, map[string]string{"status": "ok"})
 	})
-
-	uc := user.New(store.S)
+	authz, err := auth.NewAuthz(store.S.DB())
+	if err != nil {
+		return err
+	}
+	uc := user.New(store.S, authz)
 
 	g.POST("/login", uc.Login)
 
@@ -41,7 +45,8 @@ func installRouters(g *gin.Engine) error {
 		{
 			userv1.POST("", uc.Create)
 			userv1.PUT(":name/change-password", uc.ChangePassword)
-			userv1.Use(mw.Authn())
+			userv1.Use(mw.Authn(), mw.Authz(authz))
+			userv1.GET(":name", uc.Get)
 		}
 	}
 

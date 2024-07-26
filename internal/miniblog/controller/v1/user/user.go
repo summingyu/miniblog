@@ -8,13 +8,15 @@ package user
 import (
 	"github.com/summingyu/miniblog/internal/miniblog/biz"
 	"github.com/summingyu/miniblog/internal/miniblog/store"
+	"github.com/summingyu/miniblog/pkg/auth"
 )
 
 // UserController 是 user 模块在 Controller 层的实现，用来处理用户模块的请求.
 type UserController struct {
+	a *auth.Authz
 	b biz.IBiz
 }
 
-func New(ds store.IStore) *UserController {
-	return &UserController{b: biz.NewBiz(ds)}
+func New(ds store.IStore, a *auth.Authz) *UserController {
+	return &UserController{a: a, b: biz.NewBiz(ds)}
 }

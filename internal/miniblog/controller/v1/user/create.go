@@ -15,6 +15,8 @@ import (
 	v1 "github.com/summingyu/miniblog/pkg/api/miniblog/v1"
 )
 
+const defaultMethods = "(GET)|(POST)|(PUT)|(DELETE)"
+
 func (ctrl *UserController) Create(c *gin.Context) {
 	log.C(c).Infow("Create user function called")
 
@@ -34,6 +36,13 @@ func (ctrl *UserController) Create(c *gin.Context) {
 	if err := ctrl.b.Users().Create(c, &r); err != nil {
 		log.C(c).Errorw("Failed to create user", "error", err)
 		core.WriteResponse(c, err, nil)
+		return
+	}
+
+	if _, err := ctrl.a.AddNamedPolicy("p", r.Username, "/v1/users/"+r.Username, defaultMethods); err != nil {
+		log.C(c).Errorw("Failed to add named policy", "error", err)
+		core.WriteResponse(c, err, nil)
+
 		return
 	}
 
