@@ -1,3 +1,8 @@
+// Copyright 2024 summingyu(余苏明) <summingbest@gmail.com>. All rights reserved.
+// Use of this source code is governed by a MIT style
+// license that can be found in the LICENSE file. The original repo for
+// this file is https://github.com/summingyu/miniblog.
+
 package user
 
 import (
@@ -10,10 +15,14 @@ import (
 	"github.com/summingyu/miniblog/internal/pkg/errno"
 	"github.com/summingyu/miniblog/internal/pkg/model"
 	v1 "github.com/summingyu/miniblog/pkg/api/miniblog/v1"
+	"github.com/summingyu/miniblog/pkg/auth"
+	"github.com/summingyu/miniblog/pkg/token"
 )
 
 type UserBiz interface {
 	Create(ctx context.Context, r *v1.CreateUserRequest) error
+	Login(ctx context.Context, r *v1.LoginRequest) (*v1.LoginResponse, error)
+	ChangePassword(ctx context.Context, username string, r *v1.ChangePasswordRequest) error
 }
 
 type userBiz struct {
@@ -37,4 +46,37 @@ func (b *userBiz) Create(ctx context.Context, r *v1.CreateUserRequest) error {
 		return err
 	}
 	return nil
+}
+
+// ChangePassword 是UserBiz接口中 `ChangePassword` 方法的具体实现
+func (b *userBiz) ChangePassword(ctx context.Context, username string, r *v1.ChangePasswordRequest) error {
+	userM, err := b.ds.Users().Get(ctx, username)
+	if err != nil {
+		return err
+	}
+	if err := auth.Compare(userM.Password, r.OldPassword); err != nil {
+		return errno.ErrPasswordIncorrect
+	}
+
+	userM.Password, _ = auth.Encrypt(r.NewPassword)
+	if err := b.ds.Users().Update(ctx, userM); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Login 是UserBiz接口中 `Login` 方法的具体实现
+func (b *userBiz) Login(ctx context.Context, r *v1.LoginRequest) (*v1.LoginResponse, error) {
+	userM, err := b.ds.Users().Get(ctx, r.Username)
+	if err != nil {
+		return nil, errno.ErrUserNotFound
+	}
+	if err := auth.Compare(userM.Password, r.Password); err != nil {
+		return nil, errno.ErrPasswordIncorrect
+	}
+	t, err := token.Sign(r.Username)
+	if err != nil {
+		return nil, errno.ErrSignToken
+	}
+	return &v1.LoginResponse{Token: t}, nil
 }

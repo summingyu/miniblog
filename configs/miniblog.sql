@@ -1,3 +1,8 @@
+-- Copyright 2024 summingyu(余苏明) <summingbest@gmail.com>. All rights reserved.
+-- Use of this source code is governed by a MIT style
+-- license that can be found in the LICENSE file. The original repo for
+-- this file is https://github.com/summingyu/miniblog.
+
 -- MariaDB dump 10.19  Distrib 10.5.17-MariaDB, for Linux (x86_64)
 --
 -- Host: 127.0.0.1    Database: miniblog

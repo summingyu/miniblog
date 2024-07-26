@@ -1,3 +1,8 @@
+// Copyright 2024 summingyu(余苏明) <summingbest@gmail.com>. All rights reserved.
+// Use of this source code is governed by a MIT style
+// license that can be found in the LICENSE file. The original repo for
+// this file is https://github.com/summingyu/miniblog.
+
 package miniblog
 
 import (
@@ -14,8 +19,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/summingyu/miniblog/internal/pkg/known"
 	"github.com/summingyu/miniblog/internal/pkg/log"
 	mw "github.com/summingyu/miniblog/internal/pkg/middleware"
+	"github.com/summingyu/miniblog/pkg/token"
 	"github.com/summingyu/miniblog/pkg/version/verflag"
 )
 
@@ -73,6 +80,8 @@ func run() error {
 	if err := initStore(); err != nil {
 		return err
 	}
+
+	token.Init(viper.GetString("jwt-secret"), known.XUsernameKey)
 	// 设置 Gin 运行模式
 	gin.SetMode(viper.GetString("runmode"))
 

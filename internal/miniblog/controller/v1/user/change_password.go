@@ -15,10 +15,10 @@ import (
 	v1 "github.com/summingyu/miniblog/pkg/api/miniblog/v1"
 )
 
-func (ctrl *UserController) Create(c *gin.Context) {
-	log.C(c).Infow("Create user function called")
+func (ctrl *UserController) ChangePassword(c *gin.Context) {
+	log.C(c).Infow("Change password function called")
 
-	var r v1.CreateUserRequest
+	var r v1.ChangePasswordRequest
 	if err := c.ShouldBindJSON(&r); err != nil {
 		log.C(c).Errorw("Failed to bind request", "error", err)
 		core.WriteResponse(c, errno.ErrBind, nil)
@@ -31,8 +31,8 @@ func (ctrl *UserController) Create(c *gin.Context) {
 		return
 	}
 
-	if err := ctrl.b.Users().Create(c, &r); err != nil {
-		log.C(c).Errorw("Failed to create user", "error", err)
+	if err := ctrl.b.Users().ChangePassword(c, c.Param("name"), &r); err != nil {
+		log.C(c).Errorw("Failed to change password", "error", err)
 		core.WriteResponse(c, err, nil)
 		return
 	}

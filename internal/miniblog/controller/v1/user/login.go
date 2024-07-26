@@ -6,7 +6,6 @@
 package user
 
 import (
-	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 
 	"github.com/summingyu/miniblog/internal/pkg/core"
@@ -15,27 +14,22 @@ import (
 	v1 "github.com/summingyu/miniblog/pkg/api/miniblog/v1"
 )
 
-func (ctrl *UserController) Create(c *gin.Context) {
-	log.C(c).Infow("Create user function called")
+func (ctrl *UserController) Login(c *gin.Context) {
+	log.C(c).Infow("Login function called")
 
-	var r v1.CreateUserRequest
+	var r v1.LoginRequest
 	if err := c.ShouldBindJSON(&r); err != nil {
 		log.C(c).Errorw("Failed to bind request", "error", err)
 		core.WriteResponse(c, errno.ErrBind, nil)
 		return
 	}
 
-	if _, err := govalidator.ValidateStruct(r); err != nil {
-		log.C(c).Errorw("Failed to validate request", "error", err)
-		core.WriteResponse(c, errno.ErrInvalidParameter.SetMessage(err.Error()), nil)
-		return
-	}
-
-	if err := ctrl.b.Users().Create(c, &r); err != nil {
-		log.C(c).Errorw("Failed to create user", "error", err)
+	resp, err := ctrl.b.Users().Login(c, &r)
+	if err != nil {
+		log.C(c).Errorw("Failed to login", "error", err)
 		core.WriteResponse(c, err, nil)
 		return
 	}
 
-	core.WriteResponse(c, nil, nil)
+	core.WriteResponse(c, nil, resp)
 }

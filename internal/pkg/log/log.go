@@ -1,3 +1,8 @@
+// Copyright 2024 summingyu(余苏明) <summingbest@gmail.com>. All rights reserved.
+// Use of this source code is governed by a MIT style
+// license that can be found in the LICENSE file. The original repo for
+// this file is https://github.com/summingyu/miniblog.
+
 package log
 
 import (
@@ -174,6 +179,10 @@ func (l *zapLogger) C(ctx context.Context) *zapLogger {
 	if requestID := ctx.Value(known.XRequestIDKey); requestID != nil {
 		// 如果 requestID 存在，则在日志中添加 request_id 字段
 		lc.z = lc.z.With(zap.String("request_id", requestID.(string)))
+	}
+
+	if userID := ctx.Value(known.XUsernameKey); userID != nil {
+		lc.z = lc.z.With(zap.Any(known.XUsernameKey, userID))
 	}
 	// 返回克隆后的 zapLogger 实例
 	return lc

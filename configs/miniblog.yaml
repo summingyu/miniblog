@@ -1,11 +1,17 @@
+# Copyright 2024 summingyu(余苏明) <summingbest@gmail.com>. All rights reserved.
+# Use of this source code is governed by a MIT style
+# license that can be found in the LICENSE file. The original repo for
+# this file is https://github.com/summingyu/miniblog.
+
 runmode: debug # Gin 运行模式，可选值：debug, release, test
 addr: :8080 # HTTP 监听地址，默认 8080
+jwt-secret: "changethis" # JWT 签名密钥，建议修改为随机字符串
 # MySQL 数据库相关配置
 db:
   host: 127.0.0.1 # MySQL 机器 IP 和端口，默认 127.0.0.1:3306
   port: 3306 # MySQL 端口，默认 3306
   username: miniblog # MySQL 用户名(建议授权最小权限集)
-  password: "********"
+  password: "changethis"
   database: miniblog # miniblog 系统所用的数据库名
   max-idle-connections: 100 # MySQL 最大空闲连接数，默认 100
   max-open-connections: 100 # MySQL 最大打开的连接数，默认 100

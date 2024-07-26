@@ -1,3 +1,8 @@
+// Copyright 2024 summingyu(余苏明) <summingbest@gmail.com>. All rights reserved.
+// Use of this source code is governed by a MIT style
+// license that can be found in the LICENSE file. The original repo for
+// this file is https://github.com/summingyu/miniblog.
+
 package miniblog
 
 import (
@@ -8,6 +13,7 @@ import (
 	"github.com/summingyu/miniblog/internal/pkg/core"
 	"github.com/summingyu/miniblog/internal/pkg/errno"
 	"github.com/summingyu/miniblog/internal/pkg/log"
+	mw "github.com/summingyu/miniblog/internal/pkg/middleware"
 )
 
 // installRouters 安装miniblog接口路由
@@ -26,12 +32,16 @@ func installRouters(g *gin.Engine) error {
 
 	uc := user.New(store.S)
 
+	g.POST("/login", uc.Login)
+
 	// 创建v1 路由分组
 	v1 := g.Group("/v1")
 	{
 		userv1 := v1.Group("/users")
 		{
 			userv1.POST("", uc.Create)
+			userv1.PUT(":name/change-password", uc.ChangePassword)
+			userv1.Use(mw.Authn())
 		}
 	}
 
