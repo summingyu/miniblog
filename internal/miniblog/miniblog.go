@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -18,10 +19,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 
+	"github.com/summingyu/miniblog/internal/miniblog/controller/v1/user"
+	"github.com/summingyu/miniblog/internal/miniblog/store"
 	"github.com/summingyu/miniblog/internal/pkg/known"
 	"github.com/summingyu/miniblog/internal/pkg/log"
 	mw "github.com/summingyu/miniblog/internal/pkg/middleware"
+	pb "github.com/summingyu/miniblog/pkg/proto/miniblog/v1"
 	"github.com/summingyu/miniblog/pkg/token"
 	"github.com/summingyu/miniblog/pkg/version/verflag"
 )
@@ -98,6 +104,8 @@ func run() error {
 	httpsrv := startInsecureServer(g)
 	// 创建HTTPS Server 实例
 	httpssrv := startSecureServer(g)
+	// 创建 gRPC Server 实例
+	grpcsrv := startGRPCServer()
 	// 等待信号退出
 	quit := make(chan os.Signal, 1)
 	// kill 默认会发送 syscall.SIGTERM 信号
@@ -120,6 +128,8 @@ func run() error {
 		log.Fatalw("Secure Server forced to shutdown", "error", err)
 		return err
 	}
+
+	grpcsrv.GracefulStop()
 
 	log.Infow("Server exiting")
 	return nil
@@ -150,4 +160,31 @@ func startSecureServer(g *gin.Engine) *http.Server {
 		}()
 	}
 	return httpssrv
+}
+
+// startGRPCServer 启动 gRPC 服务
+func startGRPCServer() *grpc.Server {
+	lis, err := net.Listen("tcp", viper.GetString("grpc.addr"))
+	if err != nil {
+		log.Fatalw("Failed to listen", "error", err)
+	}
+
+	// 创建 gRPC 服务
+	grpcsrv := grpc.NewServer(
+		grpc.MaxRecvMsgSize(1024*1024*20), // 20MB
+		grpc.MaxSendMsgSize(1024*1024*20), // 20MB
+		grpc.KeepaliveParams(keepalive.ServerParameters{
+			MaxConnectionIdle: 5 * time.Minute,
+		}),
+	)
+	pb.RegisterMiniBlogServer(grpcsrv, user.New(store.S, nil))
+	// 运行 GRPC 服务器。在 goroutine 中启动服务器，它不会阻止下面的正常关闭处理流程
+	// 打印一条日志，用来提示 GRPC 服务已经起来，方便排障
+	log.Infow("Start to listening the incoming requests on grpc address", "addr", viper.GetString("grpc.addr"))
+	go func() {
+		if err := grpcsrv.Serve(lis); err != nil {
+			log.Fatalw("Failed to start gRPC server", "error", err)
+		}
+	}()
+	return grpcsrv
 }
