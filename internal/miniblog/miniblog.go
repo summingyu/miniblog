@@ -95,15 +95,9 @@ func run() error {
 		return err
 	}
 	// 创建HTTP Server 实例
-	httpsrv := &http.Server{Addr: viper.GetString("addr"), Handler: g}
-	// 启动HTTP Server
-	log.Infow("Start to listening the incoming requests on http address", "addr", viper.GetString("addr"))
-	go func() {
-		if err := httpsrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalw("Failed to start http server", "error", err.Error())
-		}
-	}()
-
+	httpsrv := startInsecureServer(g)
+	// 创建HTTPS Server 实例
+	httpssrv := startSecureServer(g)
 	// 等待信号退出
 	quit := make(chan os.Signal, 1)
 	// kill 默认会发送 syscall.SIGTERM 信号
@@ -119,10 +113,41 @@ func run() error {
 
 	// 10s 内关闭服务器
 	if err := httpsrv.Shutdown(ctx); err != nil {
-		log.Fatalw("Server forced to shutdown", "error", err)
+		log.Fatalw("Insecure Server forced to shutdown", "error", err)
+		return err
+	}
+	if err := httpssrv.Shutdown(ctx); err != nil {
+		log.Fatalw("Secure Server forced to shutdown", "error", err)
 		return err
 	}
 
 	log.Infow("Server exiting")
 	return nil
+}
+
+func startInsecureServer(g *gin.Engine) *http.Server {
+	httpsrv := &http.Server{Addr: viper.GetString("addr"), Handler: g}
+	log.Infow("Start to listening the incoming requests on https address", "addr", viper.GetString("addr"))
+	go func() {
+		if err := httpsrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalw("Failed to start http server", "error", err.Error())
+		}
+	}()
+	return httpsrv
+}
+
+func startSecureServer(g *gin.Engine) *http.Server {
+	httpssrv := &http.Server{Addr: viper.GetString("tls.addr"), Handler: g}
+	// 运行 HTTPS 服务器。在 goroutine 中启动服务器，它不会阻止下面的正常关闭处理流程
+	// 打印一条日志，用来提示 HTTPS 服务已经起来，方便排障
+	log.Infow("Start to listening the incoming requests on https address", "addr", viper.GetString("tls.addr"))
+	cert, key := viper.GetString("tls.cert"), viper.GetString("tls.key")
+	if cert != "" && key != "" {
+		go func() {
+			if err := httpssrv.ListenAndServeTLS(cert, key); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				log.Fatalw("Failed to start https server", "error", err.Error())
+			}
+		}()
+	}
+	return httpssrv
 }
